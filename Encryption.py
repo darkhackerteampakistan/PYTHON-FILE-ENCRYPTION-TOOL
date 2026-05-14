@@ -1,18 +1,14 @@
 import os
-import time
 import base64
-from pathlib import Path
-
-try:
-    from cryptography.fernet import Fernet
-except ImportError:
-    print("Installing required package...")
-    os.system("pip install cryptography")
-    from cryptography.fernet import Fernet
-
+import zlib
+import marshal
+import hashlib
+import random
+import string
+import time
 
 # =========================
-# COLOR UI
+# UI COLORS
 # =========================
 R = "\033[91m"
 G = "\033[92m"
@@ -20,7 +16,6 @@ Y = "\033[93m"
 B = "\033[94m"
 C = "\033[96m"
 W = "\033[0m"
-
 
 # =========================
 # ANIMATION
@@ -31,97 +26,90 @@ def slow(text, delay=0.01):
         time.sleep(delay)
     print()
 
-
 def loading(msg="Processing"):
     for _ in range(3):
         print(f"{Y}{msg}.{W}", end="\r")
-        time.sleep(0.25)
+        time.sleep(0.2)
         print(f"{Y}{msg}..{W}", end="\r")
-        time.sleep(0.25)
+        time.sleep(0.2)
         print(f"{Y}{msg}...{W}", end="\r")
-        time.sleep(0.25)
-    print(" " * 50, end="\r")
-
-
-# =========================
-# FIND PYTHON FILES
-# =========================
-def find_python_files():
-    search_paths = [
-        "/sdcard",
-        str(Path.home())
-    ]
-
-    py_files = []
-
-    for base in search_paths:
-        if os.path.exists(base):
-            for root, dirs, files in os.walk(base):
-
-                # Skip unnecessary folders
-                dirs[:] = [
-                    d for d in dirs
-                    if d not in [
-                        "Android",
-                        ".thumbnails",
-                        "__pycache__"
-                    ]
-                ]
-
-                for file in files:
-                    if (
-                        file.endswith(".py")
-                        and not file.startswith(".trashed")
-                    ):
-                        full_path = os.path.join(root, file)
-
-                        # Skip this tool itself
-                        if os.path.abspath(full_path) != os.path.abspath(__file__):
-                            py_files.append(full_path)
-
-    return sorted(set(py_files))
-
+        time.sleep(0.2)
+    print(" " * 40, end="\r")
 
 # =========================
-# PROTECT FILE
+# KEY GENERATION
 # =========================
-def protect_python_file(file_path):
-    with open(file_path, "rb") as f:
-        content = f.read()
+K1 = "dark_team"
+K2 = "rifat_osama"
+K3 = "secure_key"
 
-    # Generate encryption key
-    key = Fernet.generate_key()
-    cipher = Fernet(key)
+def get_key():
+    data = (K1 + K2 + K3).encode()
+    return hashlib.sha256(data).digest()
 
-    encrypted = cipher.encrypt(content)
+# =========================
+# ENCRYPT FUNCTION
+# =========================
+def encrypt_code(code):
+    key = get_key()
 
-    base_name = os.path.splitext(
-        os.path.basename(file_path)
-    )[0]
+    compiled = compile(code, "<enc>", "exec")
+    marshaled = marshal.dumps(compiled)
+    compressed = zlib.compress(marshaled)
 
-    save_dir = os.path.dirname(file_path)
+    # simple XOR encryption (no external library)
+    encrypted = bytearray()
+    for i, b in enumerate(compressed):
+        encrypted.append(b ^ key[i % len(key)])
 
-    # Folder create
-    folder_name = f"{base_name}_encrypted_folder"
-    folder_path = os.path.join(save_dir, folder_name)
+    return base64.b64encode(encrypted).decode()
 
-    os.makedirs(folder_path, exist_ok=True)
+# =========================
+# LOADER BUILDER
+# =========================
+def build_loader(enc_data):
+    return f"""
+import base64, zlib, marshal, hashlib
 
-    # Save protected file
-    output_name = f"{base_name}_protected.pyenc"
-    output_path = os.path.join(folder_path, output_name)
+K1="dark_team"
+K2="rifat_osama"
+K3="secure_key"
 
-    with open(output_path, "wb") as f:
-        f.write(encrypted)
+def key():
+    return hashlib.sha256((K1+K2+K3).encode()).digest()
 
-    # Save key
-    key_path = os.path.join(folder_path, "secret.key")
+data = base64.b64decode("{enc_data}")
 
-    with open(key_path, "wb") as f:
-        f.write(key)
+key_bytes = key()
 
-    return output_path, folder_path, key_path
+# XOR DECRYPT
+raw = bytearray()
+for i,b in enumerate(data):
+    raw.append(b ^ key_bytes[i % len(key_bytes)])
 
+code = marshal.loads(zlib.decompress(raw))
+exec(code)
+"""
+
+# =========================
+# FILE SEARCH
+# =========================
+def find_py_files():
+    paths = ["/sdcard", os.getcwd()]
+    files = []
+
+    for p in paths:
+        if os.path.exists(p):
+            for r, d, f in os.walk(p):
+                d[:] = [x for x in d if x not in ["Android", "__pycache__", ".thumbnails"]]
+
+                for file in f:
+                    if file.endswith(".py") and not file.startswith(".trashed"):
+                        full = os.path.join(r, file)
+                        if full != os.path.abspath(__file__):
+                            files.append(full)
+
+    return sorted(set(files))
 
 # =========================
 # MAIN
@@ -130,55 +118,46 @@ if __name__ == "__main__":
     os.system("clear")
 
     slow(f"{C}===================================={W}")
-    slow(f"{G}   🔐 PYTHON FILE PROTECTION TOOL{W}")
-    slow(f"{B}   Developer: Molla Mohammad Rifat Osama{W}")
+    slow(f"{G}   🔐 PYTHON ENCRYPTION TOOL{W}")
+    slow(f"{B}   No External Library Version{W}")
     slow(f"{C}===================================={W}\n")
 
     loading("Scanning device")
 
-    py_files = find_python_files()
+    py_files = find_py_files()
 
     if not py_files:
         slow(f"{R}❌ No Python files found{W}")
         exit()
 
-    slow(f"{G}✅ Total Python Files Found: {len(py_files)}{W}\n")
+    slow(f"{G}📂 Found Files: {len(py_files)}{W}\n")
 
-    for i, file in enumerate(py_files, 1):
-        print(f"{C}[{i}] {G}{file}{W}")
+    for i, f in enumerate(py_files, 1):
+        print(f"{C}[{i}] {G}{f}{W}")
 
-    while True:
-        try:
-            choice = int(
-                input(
-                    f"\n{Y}Select file number ➤ {W}"
-                )
-            )
+    choice = int(input(f"\n{Y}Select file ➤ {W}"))
 
-            if 1 <= choice <= len(py_files):
-                selected_file = py_files[choice - 1]
-                break
-            else:
-                slow(f"{R}❌ Invalid choice!{W}")
+    selected = py_files[choice - 1]
 
-        except ValueError:
-            slow(f"{R}❌ Enter valid number!{W}")
+    slow(f"\n{B}Encrypting...{W}")
+    loading("Encrypting")
 
-    print(f"\n{C}Selected:{W}")
-    print(selected_file)
+    with open(selected, "r", encoding="utf-8") as f:
+        code = f.read()
 
-    loading("Protecting file")
+    enc = encrypt_code(code)
+    loader = build_loader(enc)
 
-    output_path, folder_path, key_path = protect_python_file(
-        selected_file
-    )
+    name = os.path.splitext(os.path.basename(selected))[0]
 
-    slow(f"\n{G}✅ Done Successfully!{W}")
-    slow(f"{C}📂 Folder Created:{W}")
-    print(folder_path)
+    folder = os.path.join(os.path.dirname(selected), name + "_encrypted")
+    os.makedirs(folder, exist_ok=True)
 
-    slow(f"\n{Y}🔐 Protected File:{W}")
-    print(output_path)
+    out = os.path.join(folder, name + "_protected.py")
 
-    slow(f"\n{B}🗝 Secret Key Saved:{W}")
-    print(key_path)
+    with open(out, "w") as f:
+        f.write(loader)
+
+    slow(f"\n{G}✅ DONE!{W}")
+    print(f"{C}Folder: {folder}{W}")
+    print(f"{C}File: {out}{W}")
