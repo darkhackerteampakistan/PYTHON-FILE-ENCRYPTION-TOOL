@@ -14,3 +14,10 @@ Follow each step carefully. Each command is required for proper setup.
 👉 এই কমান্ডটি আপনার Termux package list আপডেট করবে
 ```
 pkg update -y
+
+---
+
+## ⬆️ 2. Upgrade Existing Packages
+👉 পুরানো packages গুলোকে নতুন version এ আপডেট করে
+```
+pkg upgrade -y
