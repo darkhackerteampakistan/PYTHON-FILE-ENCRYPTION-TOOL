@@ -57,7 +57,6 @@ def encrypt_code(code):
     marshaled = marshal.dumps(compiled)
     compressed = zlib.compress(marshaled)
 
-    # simple XOR encryption (no external library)
     encrypted = bytearray()
     for i, b in enumerate(compressed):
         encrypted.append(b ^ key[i % len(key)])
@@ -82,7 +81,6 @@ data = base64.b64decode("{enc_data}")
 
 key_bytes = key()
 
-# XOR DECRYPT
 raw = bytearray()
 for i,b in enumerate(data):
     raw.append(b ^ key_bytes[i % len(key_bytes)])
@@ -101,11 +99,13 @@ def find_py_files():
     for p in paths:
         if os.path.exists(p):
             for r, d, f in os.walk(p):
+
                 d[:] = [x for x in d if x not in ["Android", "__pycache__", ".thumbnails"]]
 
                 for file in f:
                     if file.endswith(".py") and not file.startswith(".trashed"):
                         full = os.path.join(r, file)
+
                         if full != os.path.abspath(__file__):
                             files.append(full)
 
@@ -132,8 +132,9 @@ if __name__ == "__main__":
 
     slow(f"{G}📂 Found Files: {len(py_files)}{W}\n")
 
+    # ✅ ONLY FILE NAME SHOW (UPDATED PART)
     for i, f in enumerate(py_files, 1):
-        print(f"{C}[{i}] {G}{f}{W}")
+        print(f"{C}[{i}] {G}{os.path.basename(f)}{W}")
 
     choice = int(input(f"\n{Y}Select file ➤ {W}"))
 
@@ -159,5 +160,6 @@ if __name__ == "__main__":
         f.write(loader)
 
     slow(f"\n{G}✅ DONE!{W}")
+
     print(f"{C}Folder: {folder}{W}")
     print(f"{C}File: {out}{W}")
