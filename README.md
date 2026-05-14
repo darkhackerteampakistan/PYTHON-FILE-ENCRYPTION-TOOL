@@ -19,5 +19,13 @@ pkg update -y
 
 ## ⬆️ 2. Upgrade Existing Packages
 👉 পুরানো packages গুলোকে নতুন version এ আপডেট করে
+
 ```
 pkg upgrade -y
+
+---
+
+## 🐍 3. Install Python
+👉 Python programming language ইনস্টল করবে
+```
+pkg install python -y
