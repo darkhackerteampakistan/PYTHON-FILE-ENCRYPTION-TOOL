@@ -18,7 +18,7 @@ pkg update -y
 
 ---
 
-## ⬆️ 2. Upgrade Existing Packages
+## ⬆️ 𝟮. 𝗨𝗽𝗴𝗿𝗮𝗱𝗲 𝗘𝘅𝗶𝘀𝘁𝗶𝗻𝗴 𝗣𝗮𝗰𝗸𝗮𝗴𝗲𝘀
 👉 পুরানো packages গুলোকে নতুন version এ আপডেট করে
 
 ```
