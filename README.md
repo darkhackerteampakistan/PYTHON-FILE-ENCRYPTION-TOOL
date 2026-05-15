@@ -15,6 +15,7 @@ Follow each step carefully. Each command is required for proper setup.
 ```
 pkg update -y
 
+
 ---
 
 ## ⬆️ 2. Upgrade Existing Packages
