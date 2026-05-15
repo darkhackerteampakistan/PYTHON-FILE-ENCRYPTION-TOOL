@@ -18,7 +18,8 @@ pkg update -y
 
 ---
 
-## ⬆️ 𝟮. 𝗨𝗽𝗴𝗿𝗮𝗱𝗲 𝗘𝘅𝗶𝘀𝘁𝗶𝗻𝗴 𝗣𝗮𝗰𝗸𝗮𝗴𝗲𝘀
+
+## 🐍 3. Install Python
 👉 পুরানো packages গুলোকে নতুন version এ আপডেট করে
 
 ```
